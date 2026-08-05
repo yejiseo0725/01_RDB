@@ -16,25 +16,63 @@ ORDER BY participant_id;
 
 -- [2] 기본 조회 미니 미션
 -- 필수 2-1-1: 모든 참가자의 이름과 지역만 조회합니다.
+SELECT name, region
+FROM participants
+ORDER BY participant_id;
 
 -- 필수 2-1-2: 참가자 번호, 이름, 연락처만 조회합니다.
+SELECT participant_id, name, phone
+FROM participants
+ORDER BY participant_id;
 
 -- 선택 2-1-3: 이름 열 제목을 참가자명으로 바꾸어 조회합니다.
+SELECT name AS 참가자명
+FROM participants
+ORDER BY participant_id;
 
 -- 필수 2-2-1, 2-2-4: 지역 종류를 중복 없이 가나다순으로 조회합니다.
+SELECT DISTINCT region
+FROM participants
+ORDER BY region;
 
 -- 필수 2-3-1: 수원 참가자의 이름과 연락처를 조회합니다.
+SELECT name, phone
+FROM participants
+WHERE region = '수원'
+ORDER BY participant_id;
 
 -- 필수 2-3-2: 건강 분야 관심자의 이름을 조회합니다.
+SELECT name
+FROM participants
+WHERE preferred_category = '건강'
+ORDER BY participant_id;
 
 -- 필수 2-3-3: 안내 수신 동의자의 이름과 지역을 조회합니다.
+SELECT name, region
+FROM participants
+WHERE notice_agreed = 'Y'
+ORDER BY participant_id;
 
 -- 필수 2-4-1: 전체 참가자 이름을 이름순으로 조회합니다.
+SELECT name
+FROM participants
+ORDER BY name;
 
 -- 필수 2-4-2: 전체 참가자를 등록일이 빠른 순서로 조회합니다.
+SELECT *
+FROM participants
+ORDER BY joined_date;
 
 -- 선택: 2-2의 관심 분야, DISTINCT 없이 지역 조회, 2-3의 나머지 요청,
 --         2-4의 나머지 요청을 이 아래에 작성합니다.
+SELECT preferred_category
+FROM participants
+ORDER BY preferred_category;
+
+SELECT participant_id 
+FROM participants
+WHERE region = '수원'
+ORDER BY participant_id;
 
 
 -- [3] 운영 요청 해결 라운드
