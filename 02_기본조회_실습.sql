@@ -126,18 +126,19 @@ ORDER BY joined_date;
 
 -- [4] 오류 탐정
 -- 필수 4-3: '공예수업' 조건을 실제 저장값에 맞게 고칩니다.
-SELECT name
+SELECT name, preferred_category
 FROM participants
-WHERE preferred_category = '공예수업';
+WHERE preferred_category = '공예';
 
 -- 필수 4-4: 지역이 한 번씩만 보이도록 고칩니다.
-SELECT region
+SELECT DISTINCT region
 FROM participants
 ORDER BY region;
 
 -- 필수 4-5: 이름순 정렬이 되도록 고칩니다.
 SELECT name
-FROM participants;
+FROM participants
+ORDER BY name;
 
 -- 선택: 4-1, 4-2, 4-6 활동을 이 아래에 작성합니다.
 

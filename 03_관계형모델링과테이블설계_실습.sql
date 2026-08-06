@@ -21,15 +21,32 @@ ORDER BY name;
 -- ================================================================
 -- [2] programs 테이블 생성과 구조 확인
 -- ================================================================
+INSERT INTO programs (
+    program_id, program_name, category, description, contact_phone
+)
+VALUES
+    ('PG-001', '생활 공예 입문', '공예', '일상 소품을 만드는 기초 활동', '031-8000-1001'),
+    ('PG-002', '건강한 일상', '건강', '가벼운 생활 운동과 건강 습관', '031-8000-1002'),
+    ('PG-003', '스마트폰 생활 활용', '디지털 생활', '생활에 필요한 스마트폰 기능 연습', '031-8000-1003');
 
+SELECT program_id, program_name, category, is_active
+FROM programs
+ORDER BY program_id;
 
 
 
 -- ================================================================
 -- [3] programs 6건 입력
 -- ================================================================
+INSERT INTO programs (
+    program_id, program_name, category, description, contact_phone, is_active
+)
+VALUES
+    ('PG-004', '함께 만드는 계절 요리', '요리', '제철 재료로 만드는 간단한 생활 요리', '031-8000-1004', 'Y'),
+    ('PG-005', '동네 기록 사진', '생활예술', '휴대전화로 생활 장면을 기록하는 사진 활동', '031-8000-1005', 'Y'),
+    ('PG-006', '기초 디지털 문서', '디지털 생활', '문서 작성과 파일 정리의 기초', '031-8000-1006', 'Y');
 
-
+SELECT * FROM programs;
 
 -- [반복·응용] 현재 운영 중인 프로그램의 번호와 이름을 직접 조회합니다.
 
@@ -67,6 +84,41 @@ PRAGMA foreign_keys = ON;
 -- [6] 제약 조건 오류 확인: 오류가 나면 정상입니다.
 -- 각 SQL은 한 번만 실행하고 오류 메시지를 확인합니다.
 -- ================================================================
+
+INSERT INTO programs (
+    program_id, program_name, category, description, contact_phone
+)
+VALUES
+    ('PG-001', '생활 공예 입문', '공예', '일상 소품을 만드는 기초 활동', '031-8000-1001'),
+    ('PG-002', '건강한 일상', '건강', '가벼운 생활 운동과 건강 습관', '031-8000-1002'),
+    ('PG-003', '스마트폰 생활 활용', '디지털 생활', '생활에 필요한 스마트폰 기능 연습', '031-8000-1003');
+
+INSERT INTO programs (
+    program_id, program_name, category, description, contact_phone, is_active
+)
+VALUES
+    ('PG-004', '함께 만드는 계절 요리', '요리', '제철 재료로 만드는 간단한 생활 요리', '031-8000-1004', 'Y'),
+    ('PG-005', '동네 기록 사진', '생활예술', '휴대전화로 생활 장면을 기록하는 사진 활동', '031-8000-1005', 'Y'),
+    ('PG-006', '기초 디지털 문서', '디지털 생활', '문서 작성과 파일 정리의 기초', '031-8000-1006', 'Y');
+
+CREATE TABLE programs (
+    program_id TEXT PRIMARY KEY, 
+    program_name TEXT NOT NULL, 
+    category TEXT NOT NULL 
+        CHECK (category IN ('공예', '건강', '디지털 생활', '요리', '생활예술')),
+    description TEXT NOT NULL, 
+    contact_phone TEXT NOT NULL, 
+    is_active TEXT NOT NULL DEFAULT 'Y' 
+        CHECK (is_active IN ('Y', 'N')) 
+);
+
+SELECT name FROM sqlite_master WHERE type='table' ORDER BY name;
+
+-- 구조 확인 (열, 타입, 제약조건 등)
+PRAGMA table_info(programs);
+
+-- 데이터가 몇 건 들어있는지 확인
+SELECT * FROM programs;
 
 -- 분야값 규칙 오류
 
