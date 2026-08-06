@@ -9,6 +9,8 @@
 
 -- 1-1. participants 테이블의 전체 행 수를 participant_count라는 이름으로 조회합니다.
 SELECT COUNT(*) AS participant_count FROM participants;
+SELECT *
+FROM program_schedules;
 
 
 -- 1-2. programs 테이블의 전체 행 수를 program_count라는 이름으로 조회합니다.
@@ -48,32 +50,76 @@ ORDER BY name;
 
 -- 2-4. 
 -- 모집중이면서 정원이 15명 이상인 일정의 번호, 프로그램 번호, 날짜, 장소, 정원, 상태를 날짜순으로 조회합니다.
-
+SELECT schedule_id, program_id, schedule_date, venue, capacity, status
+FROM program_schedules
+WHERE status = '모집중' AND capacity >= 15
+ORDER BY schedule_date;
 
 -- 2-5. 
 -- 수원 또는 성남 참가자의 번호, 이름, 지역을 지역·이름순으로 조회합니다. OR을 사용합니다.
-
+SELECT participant_id, name, region
+FROM participants
+WHERE region = '수원' OR region = '성남'
+ORDER BY region, name;
 
 -- 위와 과 같은 결과를 IN으로 조회합니다.
-
+SELECT participant_id, name, region
+FROM participants
+WHERE region IN ('수원', '성남')
+ORDER BY region, name;
 
 -- 2-6. 
 -- 취소되지 않은 일정의 번호, 프로그램 번호, 날짜, 상태를 일정 번호순으로 조회합니다.
-
+SELECT schedule_id, program_id, schedule_date, status
+FROM program_schedules
+WHERE NOT status = '취소'
+ORDER BY schedule_id;
 
 -- 2026-08-22부터 2026-08-29 사이 일정의 번호, 날짜, 정원을 날짜순으로 조회합니다.
-
+SELECT schedule_id, schedule_date, capacity
+FROM program_schedules
+WHERE schedule_date BETWEEN '2026-08-22' AND '2026-08-29'
+ORDER BY schedule_date;
 
 -- 정원이 15명부터 18명 사이인 일정의 번호와 정원을 정원·일정 번호순으로 조회합니다.
+SELECT schedule_id, capacity
+FROM program_schedules
+WHERE capacity BETWEEN 15 AND 18
+ORDER BY capacity, schedule_id;
 
+-- 연습 [1] 
+SELECT schedule_date
+FROM program_schedules
+WHERE schedule_date BETWEEN '2026-08-22' AND '2026-08-29' AND status = '모집중'
+ORDER BY schedule_date, status;
+
+-- 연습 [2]
+SELECT schedule_date
+FROM program_schedules
+WHERE capacity BETWEEN 15 AND 18 AND status = '마감'
+ORDER BY capacity, schedule_date;
+
+-- 연습 [3]
+SELECT schedule_id, schedule_date, capacity, status
+FROM program_schedules
+WHERE status != '취소'
+    AND schedule_date BETWEEN '2026-08-22' AND '2026-08-29'
+    AND capacity BETWEEN 15 AND 18
+ORDER BY schedule_date, capacity;
 
 -- 2-7. 
 -- 프로그램 이름에 생활이 포함된 프로그램의 번호와 이름을 조회합니다.
-
+SELECT program_id, program_name
+FROM programs
+WHERE program_name LIKE '%생활%';
 
 -- 2-8. 
 -- 공예 또는 건강 분야이면서 현재 운영 중인 프로그램의 번호, 이름, 분야, 운영 여부를 분야·번호순으로 조회합니다.
-
+SELECT schedule_id, schedule_date, capacity, status
+FROM program_schedules
+WHERE (status = '모집중' OR status = '마감')
+  AND capacity >= 15
+ORDER BY schedule_date;
 
 -- =========================================================
 -- [3] 운영 요청 라운드 1
