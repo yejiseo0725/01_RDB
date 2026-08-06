@@ -74,17 +74,54 @@ FROM participants
 WHERE region = '수원'
 ORDER BY participant_id;
 
+-- [3] 8건 추가 입력
+-- 표의 값을 보고 각 INSERT 문을 완성합니다.
+-- INSERT 문에는 값을 넣을 열 이름을 먼저 작성합니다.
+-- 열 이름과 VALUES의 값은 같은 순서로 작성합니다.
+INSERT INTO participants 
+    (participant_id, name, region, preferred_category, phone, joined_date, notice_agreed)
+VALUES 
+    ('P-013', '유나경', '화성', '요리', '010-4000-1001', '2026-08-09', 'Y'),
+    ('P-014', '임현우', '안양', '공예', '010-4000-1002', '2026-08-09', 'N'),
+    ('P-015', '조하린', '수원', '건강', '010-4000-1003', '2026-08-10', 'Y'),
+    ('P-016', '신도윤', '성남', '디지털 생활', '010-4000-1004', '2026-08-10', 'N'),
+    ('P-017', '권서아', '용인', '요리', '010-4000-1005', '2026-08-11', 'Y'),
+    ('P-018', '차민준', '화성', '공예', '010-4000-1006', '2026-08-11', 'N'),
+    ('P-019', '노지안', '안양', '디지털 생활', '010-4000-1007', '2026-08-12', 'Y'),
+    ('P-020', '송예준', '수원', '건강', '010-4000-1008', '2026-08-12', 'N');
+-- P-001부터 P-020까지 참가자 번호가 빠짐없이 보이는지 확인합니다.
+SELECT participant_id, name, region, preferred_category, notice_agreed
+FROM participants
+ORDER BY participant_id;
 
--- [3] 운영 요청 해결 라운드
--- 필수 라운드 1: 안내 수신 동의자의 이름과 지역을 조회합니다.
+-- [4] 20건 데이터로 조회 요청 해결
 
--- 필수 라운드 2-1: '수원시' 조건으로 참가자 이름을 조회합니다.
--- 필수 라운드 2-2: 결과가 0행이면 DISTINCT로 실제 저장된 지역값을 확인합니다.
--- 필수 라운드 2-3: 조건값을 실제 저장값으로 고쳐 다시 실행합니다.
+-- 라운드 1. 지역과 관심 분야의 조합을 중복 없이 조회합니다.
+-- 열 제목: 지역, 관심분야
+-- 정렬: 지역순, 같은 지역에서는 관심 분야순
+SELECT DISTINCT region AS 지역, preferred_category AS 관심분야
+FROM participants
+ORDER BY region, preferred_category;
 
--- 필수 라운드 3: 참가자 번호, 이름, 지역, 관심 분야에 요청한 별칭을 붙여 조회합니다.
+-- 라운드 2. 안내 수신 동의자의 등록번호, 참가자명, 지역, 관심분야를 조회합니다.
+-- 정렬: 지역순, 같은 지역에서는 이름순
+SELECT participant_id AS 등록번호, name AS 참가자명, region AS 지역, preferred_category AS 관심분야
+FROM participants
+WHERE notice_agreed = 'Y'
+ORDER BY region, name;
 
--- 선택: 각 라운드의 나머지 요청을 이 아래에 작성합니다.
+-- 라운드 3. 전체 참가자의 등록번호, 참가자명, 지역, 등록일을 조회합니다.
+-- 정렬: 지역순, 같은 지역에서는 등록일이 빠른 순서
+SELECT participant_id AS 등록번호, name AS 참가자명, region AS 지역, joined_date AS 등록일
+FROM participants
+ORDER BY region, joined_date;
+
+-- 라운드 4. 디지털 생활 관심자의 참가자 번호, 참가자명, 지역, 등록일을 조회합니다.
+-- 정렬: 등록일이 빠른 순서
+SELECT participant_id AS 참가자 번호, name AS 참가자명, region AS 지역, joined_date AS 등록일
+FROM participants
+where preferred_category = '디지털 생활'
+ORDER BY joined_date;
 
 
 -- [4] 오류 탐정
