@@ -127,11 +127,143 @@ SELECT * FROM programs;
 
 
 -- 외래 키 규칙 오류: FOREIGN KEY constraint failed가 예상됩니다.
+-- 외래 키 검사 ON 
 PRAGMA foreign_keys = ON;
+PRAGMA foreign_keys;
 
+CREATE TABLE program_schedules ( schedule_id TEXT PRIMARY KEY, program_id TEXT NOT NULL, schedule_date TEXT NOT NULL, start_time TEXT NOT NULL, venue TEXT NOT NULL, capacity INTEGER NOT NULL CHECK (capacity > 0), status TEXT NOT NULL DEFAULT '모집중' CHECK (status IN ('모집중', '마감', '취소')), FOREIGN KEY (program_id) REFERENCES programs(program_id) );
+
+PRAGMA table_info(program_schedules);
+PRAGMA foreign_key_list(program_schedules);
 
 -- ================================================================
 -- [7] 종료 검수
 -- ================================================================
 
 
+INSERT INTO program_schedules (
+    schedule_id, program_id, schedule_date, start_time, venue, capacity
+)
+VALUES 
+    ('S-001', 'PG-001', '2026-08-20', '10:00', '수원 시민회관 2층', 18),
+    ('S-002', 'PG-002', '2026-08-27', '10:00', '수원 시민회관 2층', 18),
+    ('S-003', 'PG-003', '2026-08-22', '14:00', '성남 생활문화센터', 20),
+    ('S-004', 'PG-004', '2026-08-29', '14:00', '성남 생활문화센터', 20);
+
+SELECT schedule_id, program_id, schedule_date, start_time, venue, capacity, status
+FROM program_schedules
+ORDER BY schedule_id;
+
+--
+
+INSERT INTO program_schedules (
+    schedule_id, program_id, schedule_date, start_time, venue, capacity, status
+)
+VALUES 
+    ('S-005', 'PG-003', '2026-08-21', '19:00', '용인 생활학습관', 16, '모집중'),
+    ('S-006', 'PG-003', '2026-08-28', '19:00', '용인 생활학습관', 16, '마감'),
+    ('S-007', 'PG-004', '2026-08-23', '11:00', '화성 공유부엌', 12, '모집중'),
+    ('S-008', 'PG-004', '2026-08-30', '11:00', '화성 공유부엌', 12, '모집중');
+
+INSERT INTO program_schedules ( 
+    schedule_id, program_id, schedule_date, start_time, venue, capacity, status 
+) 
+VALUES 
+    ('S-009', 'PG-005', '2026-08-24', '15:00', '안양 문화공간', 15, '모집중'), 
+    ('S-010', 'PG-005', '2026-08-31', '15:00', '안양 문화공간', 15, '취소'), 
+    ('S-011', 'PG-006', '2026-09-02', '18:30', '수원 시민회관 3층', 14, '모집중'), 
+    ('S-012', 'PG-006', '2026-09-09', '18:30', '수원 시민회관 3층', 14, '모집중');
+
+SELECT schedule_id, program_id, schedule_date, start_time, venue, capacity, status
+FROM program_schedules
+ORDER BY schedule_id;
+
+UPDATE program_schedules
+SET program_id = 'PG-001'
+WHERE schedule_id = 'S-002';
+
+UPDATE program_schedules
+SET program_id = 'PG-002'
+WHERE schedule_id = 'S-003';
+
+UPDATE program_schedules
+SET program_id = 'PG-002'
+WHERE schedule_id = 'S-004';
+
+SELECT schedule_id, program_id, schedule_date, start_time, venue, capacity, status
+FROM program_schedules
+ORDER BY schedule_id;
+
+-- 1
+SELECT schedule_id, schedule_date, venue 
+FROM program_schedules
+-- 8월만
+WHERE schedule_date LIKE '2026-08%'
+ORDER BY schedule_id;
+
+-- 2
+SELECT schedule_id, program_id
+FROM program_schedules
+WHERE status = '모집중'
+ORDER BY schedule_id;
+
+-- 3
+SELECT schedule_id, schedule_date
+FROM program_schedules
+WHERE venue = '수원 시민회관 2층'
+ORDER BY schedule_id;
+
+-- 4
+SELECT DISTINCT status
+FROM program_schedules
+ORDER BY status;
+
+-- [8] 
+INSERT INTO programs (
+    program_id, program_name, category, description, contact_phone
+)
+VALUES (
+    'PG-099', '테스트 프로그램', '디지털교육', '입력 규칙 확인용 데이터', '031-8000-1099'
+);
+
+
+SELECT program_id, program_name, category FROM programs WHERE program_id = 'PG-099';
+
+INSERT INTO program_schedules (
+    schedule_id, program_id, schedule_date, start_time, venue, capacity
+) 
+VALUES ( 
+    'S-099', 'PG-001', '2026-09-15', '10:00', '수원 시민회관 2층', 0 
+);
+
+SELECT schedule_id, capacity FROM program_schedules WHERE schedule_id = 'S-099';
+
+PRAGMA foreign_keys = ON;
+
+INSERT INTO program_schedules (
+    schedule_id, program_id, schedule_date, start_time, venue, capacity
+)
+VALUES (
+    'S-100', 'PG-999', '2026-09-16', '13:00', '용인 생활학습관', 10
+);
+
+PRAGMA foreign_keys = ON;
+
+DELETE FROM program_schedules 
+WHERE schedule_id = 'S-100';
+
+SELECT schedule_id, program_id
+FROM program_schedules
+WHERE schedule_id = 'S-100';
+
+-- [9] 만든 구조 검수
+SELECT name
+FROM sqlite_master 
+WHERE type = 'table'
+ORDER BY name;
+
+SELECT COUNT(*) AS participant_count FROM participants;
+SELECT COUNT(*) AS program_count FROM programs;
+SELECT COUNT(*) AS schedule_count FROM program_schedules;
+
+SELECT schedule_id, program_id, schedule_date, venue FROM program_schedules WHERE program_id = 'PG-001' ORDER BY schedule_date;
