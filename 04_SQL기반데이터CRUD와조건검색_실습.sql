@@ -368,11 +368,35 @@ FROM registrations
 WHERE registration_id = 'R-004';
 -- 결과: 2026-08-10 11:00
 
+
+-- 테이블의 열 목록 & 전체 정보 알려주기 
+PRAGMA table_info(program_schedules);
+-- 일정|날짜|장소|정원|모집중,마감,취소
+SELECT * FROM program_schedules;
+-- 참가자|이름|지역|연락처
+SELECT * FROM participants;
+-- 프로그램|분야|소개
+SELECT * FROM programs;
+-- 신청|신청 시각|신청 상태
+SELECT * FROM registrations;
+
+
+
 -- =========================================================
 -- [12] 종료 확인
 -- =========================================================
 
 -- 12-1. 전체 신청을 신청 번호순으로 조회합니다.
+UPDATE registrations
+SET registration_status = '신청'
+WHERE registration_id IN('R-002','R-004');
+
+SELECT registration_id, participant_id, schedule_id, applied_at, registration_status
+FROM registrations
+ORDER BY registration_id;
+
+SELECT COUNT(*) AS registration_count
+FROM registrations;
 
 
 -- 12-2. 전체 신청 건수를 registration_count라는 이름으로 조회합니다.
