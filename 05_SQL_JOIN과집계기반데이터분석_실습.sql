@@ -8,7 +8,21 @@
 -- =========================================================
 
 -- 1-1. programs의 전체 행 수를 program_count라는 이름으로 조회합니다.
+SELECT 'programs' AS table_name, COUNT(*) AS row_count
+FROM programs
+UNION ALL
+SELECT 'programs_schedules', COUNT(*)
+FROM program_schedules
+UNION ALL
+SELECT 'participants', COUNT(*)
+FROM participants
+UNION ALL
+SELECT 'registrations', COUNT(*)
+FROM registrations;
 
+SELECT registration_id, participant_id, schedule_id, registration_status
+FROM registrations
+ORDER BY registration_id;
 
 -- 1-2. program_schedules의 전체 행 수를 schedule_count라는 이름으로 조회합니다.
 
@@ -28,15 +42,29 @@
 
 -- 2-2. 일정 번호, 프로그램 이름, 분야, 날짜, 시작 시각, 장소, 상태를
 --      날짜·시각순으로 조회합니다. program_schedules와 programs를 INNER JOIN합니다.
-
+SELECT s.schedule_id, p.program_name, p.category, s.schedule_date, s.start_time, s.venue, s.status
+FROM program_schedules AS s
+INNER JOIN programs AS p
+    ON s.program_id = p.program_id
+ORDER BY s.schedule_date, s.start_time;
 
 -- 2-3. 모집중인 디지털 생활 분야 일정의 번호, 프로그램 이름, 분야, 날짜, 시각, 장소, 상태를
 --      날짜순으로 조회합니다.
-
+SELECT s.schedule_id, p.program_name, p.category, s.schedule_date, s.start_time, s.venue, s.status
+FROM program_schedules AS s
+INNER JOIN programs AS p
+    ON s.program_id = p.program_id
+WHERE s.status = '모집중' AND p.category = '디지털 생활'
+ORDER BY s.schedule_date, s.start_time;
 
 -- 2-4. [반복·응용] 공예 또는 디지털 생활 분야이면서 모집중인 일정의 번호, 프로그램 이름, 분야,
 --      날짜, 시각, 장소를 분야·날짜·시각순으로 조회합니다. 분야 조건은 괄호로 묶습니다.
-
+SELECT s.schedule_id, p.program_name, p.category, s.schedule_date, s.start_time, s.venue, s.status
+FROM program_schedules AS s
+INNER JOIN programs AS p
+    ON s.program_id = p.program_id
+WHERE (p.category = '공예' OR p.category = '디지털 생활') AND s.status = '모집중'
+ORDER BY p.category, s.schedule_date, s.start_time;
 
 -- =========================================================
 -- [3] 참가 신청 내역 연결
@@ -45,6 +73,15 @@
 -- 3-1. 신청 번호, 신청 상태, 참가자 이름, 지역, 프로그램 이름, 일정 날짜, 장소를
 --      신청 번호순으로 조회합니다.
 --      registrations, participants, program_schedules, programs를 연결합니다.
+SELECT r.registration_id, r.registration_status, pt.name, pt.region, p.program_name, s.schedule_date, s.venue
+FROM registrations AS r
+JOIN participants AS pt
+    ON r.participant_id = pt.participant_id
+JOIN program_schedules AS s
+    ON r.schedule_id = s.schedule_id
+JOIN programs AS p
+    ON s.program_id = p.program_id
+ORDER BY r.registration_id;
 
 
 -- 3-2. 수원 또는 성남 참가자의 신청 번호, 이름, 지역, 프로그램 이름, 일정 날짜, 신청 상태를
