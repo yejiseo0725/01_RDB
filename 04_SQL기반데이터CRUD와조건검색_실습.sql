@@ -196,20 +196,25 @@ PRAGMA foreign_keys = ON;
 INSERT INTO registrations (registration_id, participant_id, schedule_id, applied_at)
 VALUES ('R-001', 'P-001', 'S-001', '2026-08-10 09:30');
 
-
 -- 7-2. R-001 한 건을 조회해 등록 결과와 기본 상태를 확인합니다.
 SELECT registration_id, participant_id, schedule_id, applied_at, registration_status
 FROM registrations
 WHERE registration_id = 'R-001';
 
 -- 7-3. R-002 / P-003 / S-005 / 2026-08-10 10:10 신청을 등록하고, R-002만 조회합니다.
-
+INSERT INTO registrations (registration_id, participant_id, schedule_id, applied_at)
+VALUES ('R-002', 'P-003', 'S-005', '2026-08-10 10:10');
+SELECT * FROM registrations WHERE registration_id = 'R-002';
 
 -- 7-4. R-003 / P-005 / S-003 / 2026-08-10 10:25 신청을 등록하고, R-003만 조회합니다.
-
+INSERT INTO registrations (registration_id, participant_id, schedule_id, applied_at)
+VALUES ('R-003', 'P-005', 'S-003', '2026-08-10 10:25');
+SELECT * FROM registrations WHERE registration_id = 'R-003';
 
 -- 7-5. R-004 / P-007 / S-009 / 2026-08-10 10:40 신청을 등록하고, R-004만 조회합니다.
-
+INSERT INTO registrations (registration_id, participant_id, schedule_id, applied_at)
+VALUES ('R-004', 'P-007', 'S-009', '2026-08-10 10:40');
+SELECT * FROM registrations WHERE registration_id = 'R-004';
 
 -- 7-6. 전체 신청을 신청 번호순으로 조회합니다.
 
@@ -244,57 +249,124 @@ FROM registrations
 WHERE registration_id = 'R-003';
 
 -- 9-2. R-003의 registration_status를 취소로 수정합니다.
-
+UPDATE registrations
+SET registration_status = '취소'
+WHERE registration_id = 'R-003';
 
 -- 9-3. R-003을 다시 조회해 수정 결과를 확인합니다.
-
+SELECT registration_id, participant_id, schedule_id, applied_at, registration_status
+FROM registrations
+WHERE registration_id = 'R-003';
 
 -- 9-4. R-004를 조회해 수정 전 신청 시각을 확인합니다.
-
+SELECT registration_id, participant_id, schedule_id, applied_at, registration_status
+FROM registrations
+WHERE registration_id = 'R-004';
 
 -- 9-5. R-004의 applied_at을 2026-08-10 11:00으로 수정합니다.
-
+UPDATE registrations
+SET applied_at = '2026-08-10 11:00'
+WHERE registration_id = 'R-004';
 
 -- 9-6. R-004를 다시 조회해 수정 결과를 확인합니다.
-
+SELECT registration_id, participant_id, schedule_id, applied_at, registration_status
+FROM registrations
+WHERE registration_id = 'R-004';
 
 -- 9-7. [반복·응용] R-002의 신청 시각을 2026-08-10 10:30으로, 상태를 취소로 함께 수정합니다.
+UPDATE registrations
+SET applied_at = '2026-08-10 10:30', registration_status = '취소'
+WHERE registration_id = 'R-002';
 
+-- 9-7. 업데이트 확인 조회
+SELECT registration_id, participant_id, schedule_id, applied_at, registration_status
+FROM registrations
+WHERE registration_id = 'R-002';
 
 -- =========================================================
 -- [10] 시험 신청 정보 삭제
 -- =========================================================
 
 -- 10-1. R-099 / P-020 / S-012 / 2026-08-10 11:30 시험 신청을 등록합니다.
-
+INSERT INTO registrations (
+    registration_id, participant_id, schedule_Id, applied_at
+)
+VALUES  (
+    'R-099', 'P-020', 'S-012', '2026-08-10 11:30'
+);
 
 -- 10-2. R-099 한 건을 조회해 삭제 대상을 확인합니다.
-
+SELECT registration_id, participant_id, schedule_id, applied_at
+FROM registrations
+WHERE registration_id = 'R-099';
 
 -- 10-3. R-099 한 건만 삭제합니다.
-
+DELETE FROM registrations
+WHERE registration_id = 'R-099';
 
 -- 10-4. R-099를 다시 조회합니다. 결과가 0행이면 정상입니다.
-
+SELECT registration_id, participant_id, schedule_id, applied_at
+FROM registrations
+WHERE registration_id = 'R-099';
 
 -- =========================================================
 -- [11] 종합 미션
 -- =========================================================
 
--- 11-1. 모집중이며 정원이 15명 이상인 일정의 번호, 날짜, 장소, 정원을 조회합니다.
+BEGIN;
 
+UPDATE registrations
+SET registration_status = '취소'
+WHERE registration_id = 'R-004';
+
+SELECT registration_id, registration_status
+FROM registrations
+WHERE registration_id = 'R-004';
+
+ROLLBACK;
+
+SELECT registration_id, registration_status
+FROM registrations
+WHERE registration_id = 'R-004';
+
+UPDATE registrations
+SET registration_status = '신청'
+WHERE registration_id = 'R-004';
+
+-- 11-1. 모집중이며 정원이 15명 이상인 일정의 번호, 날짜, 장소, 정원을 조회합니다.
+SELECT schedule_id, schedule_date, venue, capacity
+FROM program_schedules
+WHERE status = '모집중' AND capacity >= 15
+ORDER BY schedule_date;
 
 -- 11-2. 수원, 성남, 안양 참가자 중 안내 수신에 동의한 참가자의 번호, 이름, 지역을 조회합니다.
-
+SELECT participant_id, name, region
+FROM participants
+WHERE region IN ('수원', '성남', '안양') AND notice_agreed = 'Y'
+ORDER BY region, name;
 
 -- 11-3. 취소되지 않은 일정 중 2026-08-24 이후 열리는 일정의 번호, 날짜, 상태를 조회합니다.
-
+SELECT schedule_id, schedule_date
+FROM program_schedules
+WHERE NOT status = '취소' AND schedule_date >= '2026-08-24'
+ORDER BY schedule_id;
 
 -- 11-4. 현재 신청 상태인 신청의 번호, 참가자 번호, 일정 번호, 신청 시각을 조회합니다.
-
+SELECT registration_id, participant_id, schedule_id, applied_at
+FROM registrations
+WHERE registration_status = '신청'
+ORDER BY registration_id;
 
 -- 11-5. R-003의 상태와 R-004의 신청 시각을 각각 확인합니다.
+SELECT registration_id, registration_status
+FROM registrations
+WHERE registration_id = 'R-003';
+-- 결과: 취소
 
+SELECT registration_id, applied_at
+FROM registrations
+WHERE registration_id = 'R-004';
+-- 결과: 2026-08-10 11:00
 
 -- =========================================================
 -- [12] 종료 확인
