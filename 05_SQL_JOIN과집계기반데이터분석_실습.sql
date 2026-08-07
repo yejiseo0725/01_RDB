@@ -86,11 +86,30 @@ ORDER BY r.registration_id;
 
 -- 3-2. 수원 또는 성남 참가자의 신청 번호, 이름, 지역, 프로그램 이름, 일정 날짜, 신청 상태를
 --      날짜·참가자 이름순으로 조회합니다.
-
+SELECT r.registration_id, pt.name, pt.region,
+       p.program_name, s.schedule_date, r.registration_status
+FROM registrations AS r
+JOIN participants AS pt
+  ON r.participant_id = pt.participant_id
+JOIN program_schedules AS s
+  ON r.schedule_id = s.schedule_id
+JOIN programs AS p
+  ON s.program_id = p.program_id
+WHERE pt.region IN ('수원', '성남')
+ORDER BY s.schedule_date, pt.name;
 
 -- 3-3. [반복·응용] 상태가 신청인 기록만 대상으로
 --      신청 번호, 참가자 이름, 프로그램 이름, 일정 날짜를 신청 번호순으로 조회합니다.
-
+SELECT r.registration_id, pt.name, p.program_name, s.schedule_date
+FROM registrations AS r
+JOIN participants AS pt
+  ON r.participant_id = pt.participant_id
+JOIN program_schedules AS s
+  ON r.schedule_id = s.schedule_id
+JOIN programs AS p
+  ON s.program_id = p.program_id
+WHERE r.registration_status = '신청'
+ORDER BY r.registration_id;
 
 -- =========================================================
 -- [4] 신청이 없는 일정 찾기
@@ -99,20 +118,50 @@ ORDER BY r.registration_id;
 -- 4-1. 일정 번호, 프로그램 이름, 날짜, 신청 번호, 신청 상태를 날짜·시작 시간순으로 조회합니다.
 --      program_schedules에서 시작하여 programs, registrations를 연결합니다.
 --      신청 기록이 있는 일정만 표시되도록 JOIN을 사용합니다.
-
+SELECT s.schedule_id, p.program_name, s.schedule_date,
+       r.registration_id, r.registration_status
+FROM program_schedules AS s
+JOIN programs AS p
+  ON s.program_id = p.program_id
+JOIN registrations AS r
+  ON s.schedule_id = r.schedule_id
+ORDER BY s.schedule_date, s.start_time;
 
 -- 4-2. 일정 번호, 프로그램 이름, 날짜, 정원, 신청 번호, 신청 상태를 날짜·시작 시간순으로 조회합니다.
 --      신청 기록이 없는 일정도 포함되도록 registrations 연결에 LEFT JOIN을 사용합니다.
-
+SELECT s.schedule_id, p.program_name, s.schedule_date, s.capacity,
+       r.registration_id, r.registration_status
+FROM program_schedules AS s
+JOIN programs AS p
+  ON s.program_id = p.program_id
+LEFT JOIN registrations AS r
+  ON s.schedule_id = r.schedule_id
+ORDER BY s.schedule_date, s.start_time;
 
 -- 4-3. 신청 기록이 없는 일정만 대상으로
 --      일정 번호, 프로그램 이름, 날짜, 장소, 정원을 날짜·시작 시간순으로 조회합니다.
 --      NULL 여부를 검사합니다.
-
+SELECT s.schedule_id, p.program_name, s.schedule_date, s.venue, s.capacity
+FROM program_schedules AS s
+JOIN programs AS p
+    ON s.program_id = p.program_id
+LEFT JOIN registrations AS r
+    ON s.schedule_id = r.schedule_id
+WHERE r.registration_id IS NULL
+ORDER BY s.schedule_date, s.start_time;
 
 -- 4-4. [반복·응용]
 --      모집중이면서 신청 기록이 없는 일정의
 --      일정 번호, 프로그램 이름, 날짜, 장소, 정원을 날짜·시작 시간순으로 조회합니다.
+SELECT s.schedule_id, p.program_id, s.schedule_date, s.venue, s.capacity
+FROM program_schedules AS s
+JOIN programs AS p
+    ON s.program_id = p.program_id
+LEFT JOIN registrations AS r
+    ON s.schedule_id = r.schedule_id
+WHERE s.status = '모집중' AND r.registration_id IS NULL
+ORDER BY s.schedule_date, s.start_time;
+
 
 -- =========================================================
 -- [5] 집계로 운영 현황 요약
@@ -120,27 +169,61 @@ ORDER BY r.registration_id;
 
 
 -- 5-1. 전체 신청 기록 수를 total_registration_count라는 이름으로 조회합니다.
+SELECT COUNT(*) AS total_registration_count
+FROM registrations;
 
 
 -- 5-2. 신청 상태별 신청 기록 수를 상태·신청 기록 수로 조회합니다.
 --      상태순으로 정렬합니다.
+SELECT registration_status, COUNT(*) AS 카운트
+FROM registrations
+GROUP BY registration_status
+ORDER BY registration_status
 
 
 -- 5-3. 프로그램 분야별 일정 수를 분야·일정 수로 조회합니다.
 --      일정 수 내림차순, 분야순으로 정렬합니다.
-
+SELECT p.category, COUNT(s.schedule_id) AS 일정카운트
+FROM programs AS p
+JOIN program_schedules AS s
+    ON p.program_id = s.program_id
+GROUP BY p.category
+ORDER BY 일정카운트 DESC, p.category;
 
 -- 5-4. 일정별로 일정 번호, 프로그램 이름, 날짜, 정원, 신청 건수를 조회합니다.
 --      신청 기록이 없는 일정도 포함하고, 날짜·시작 시간순으로 정렬합니다.
+SELECT s.schedule_id, p.program_name, s.capacity, COUNT(r.registration_id) AS 등록카운트 
+FROM program_schedules AS s 
+JOIN programs AS p
+    ON s.program_id = p.program_id
+LEFT JOIN registrations AS r
+    ON s.schedule_id = r.schedule_id
+GROUP BY s.schedule_id, p.program_name, s.schedule_date, s.start_time, s.capacity
+ORDER BY s.schedule_date, s.start_time;
 
 
 -- 5-5. 5-4와 같은 결과를 신청 건수 내림차순,
 --      날짜·시작 시간 오름차순으로 정렬합니다.
+SELECT s.schedule_id, p.program_name, s.schedule_date, s.capacity, COUNT(r.registration_id) AS 등록카운트
+FROM program_schedules AS s
+JOIN programs AS p
+    ON s.program_id = p.program_id
+LEFT JOIN registrations AS r
+    ON s.schedule_id = r.schedule_id
+GROUP BY s.schedule_id, p.program_name, s.schedule_date, s.start_time, s.capacity
+ORDER BY 등록카운트 DESC, s.schedule_date, s.start_time;
 
 
 -- 5-6. [반복·응용] 프로그램 분야별 신청 기록 수를 분야·신청 기록 수로 조회합니다.
 --      신청 기록이 없는 분야도 포함하고, 신청 기록 수 내림차순·분야순으로 정렬합니다.
-
+SELECT p.category, COUNT(r.registration_id) AS 등록카운트
+FROM programs AS p
+JOIN program_schedules AS s
+    ON p.program_id = s.program_id
+LEFT JOIN registrations AS r
+    ON s.schedule_id = r.schedule_id
+GROUP BY p.category
+ORDER BY 등록카운트 DESC, p.category;
 
 -- =========================================================
 -- [6] HAVING으로 집계 결과 조건 검색
@@ -148,21 +231,54 @@ ORDER BY r.registration_id;
 
 -- 6-1. 분야별 일정 수를 구한 뒤, 일정 수가 3개 이상인 분야의
 --      분야·일정 수를 일정 수 내림차순, 분야순으로 조회합니다.
+SELECT p.category, COUNT(s.schedule_id) AS 일정카운트
+FROM programs AS p
+JOIN program_schedules AS s
+    ON p.program_id = s.program_id
+GROUP BY p.category
+HAVING COUNT(s.schedule_id) >= 3
+ORDER BY 일정카운트 DESC, p.category;
 
 
 -- 6-2. 모집중인 일정만 대상으로 프로그램별 일정 수를 구한 뒤,
 --      모집중인 일정이 2개 이상인 프로그램의 번호·이름·일정 수를
 --      일정 수 내림차순, 프로그램 번호순으로 조회합니다.
+SELECT p.program_id, p.program_name, COUNT(s.schedule_id) AS 열린일정카운트
+FROM programs AS p
+JOIN program_schedules AS s
+    ON p.program_id = s.program_id
+WHERE s.status = '모집중'
+GROUP BY p.program_id, p.program_name
+HAVING COUNT(s.schedule_id) >= 2
+ORDER BY 열린일정카운트 DESC, p.program_id;
 
 
 -- 6-3. [반복·응용] 분야별 신청 기록 수를 구한 뒤,
 --      신청 기록이 1건 이상인 분야의 분야·신청 기록 수를
 --      신청 기록 수 내림차순, 분야순으로 조회합니다.
+SELECT p.category, COUNT(r.registration_id) AS 등록카운트
+FROM programs AS p
+JOIN program_schedules AS s
+    ON p.program_id = s.program_id
+LEFT JOIN registrations AS r
+    ON s.schedule_id = r.schedule_id
+GROUP by p.category
+HAVING COUNT(r.registration_id) >= 1
+ORDER BY 등록카운트 DESC, p.category;
 
 
 -- 6-4. [확장] 모집중인 일정만 대상으로 분야별 일정 수를 구한 뒤,
 --      일정 수가 2개 이상인 분야의 분야·일정 수를
 --      일정 수 내림차순, 분야순으로 조회합니다.
+SELECT p.category, COUNT(s.schedule_id) AS 열린일정카운트
+FROM programs AS p
+JOIN program_schedules AS s
+    ON p.program_id = s.program_id
+WHERE s.status = '모집중'
+GROUP BY p.category
+HAVING COUNT(s.schedule_id) >= 2
+ORDER BY 열린일정카운트 DESC, p.category;
+
 
 
 -- =========================================================
